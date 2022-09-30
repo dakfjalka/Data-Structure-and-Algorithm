@@ -1,14 +1,3 @@
-/**
- * @file main.c
- * @author Xilin Xia (xiaxilin@mail.ustc.edu.cn)
- * @brief 大作业
- * @version 0.1(vscode自己生成的就保留在这里吧)
- * @date 2022-09-15
- * 
- * @copyright Copyright (c) 2022(话说这是什么东西)
- * 
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -17,7 +6,6 @@
  * @brief 自己编写的一个关于线性结构的小文件。
  */
 #include "./list.h"
-
 
 /**
  * @brief 一些可以更改的宏定义
@@ -29,7 +17,6 @@
 /*}
 */ 
 
-
 /**
  * @brief 一些不能改的宏定义
  * {
@@ -38,7 +25,6 @@ typedef List_typeDef Poker_TypeDef;
 #define Destory_Poker List_Destory
 /*}
 */
-
 
 /**
  * @brief 函数声明
@@ -49,11 +35,10 @@ int Get_RandimNum(int min, int max);
 Err_TypeDef Init_Poker(Poker_TypeDef **list);
 Err_TypeDef Print_Poker(Poker_TypeDef *list);
 Err_TypeDef Split_Poker(Poker_TypeDef *list, int split_point);
-Err_TypeDef Split_Shuffle(Poker_TypeDef *list);
+Err_TypeDef Shuffle_Poker(Poker_TypeDef *list);
 Err_TypeDef Split_Poker_Random(Poker_TypeDef *list);
 /*}
 */
-
 
 /**
  * @brief 设置随机数种子，并且如果设置一次过后再次设置将被视为无效
@@ -69,7 +54,6 @@ void Set_RandomSeed(){
     }
 }
 
-
 /**
  * @brief 返回一个给定范围的随机数x, min <= x < max 
  * 
@@ -80,7 +64,6 @@ void Set_RandomSeed(){
 int Get_RandimNum(int min, int max){
     return (int)(1.0 * (max - min) / RAND_MAX * rand() + min);
 }
-
 
 /**
  * @brief 初始化一个扑克牌线性结构，赋予初始值
@@ -131,7 +114,7 @@ Err_TypeDef Print_Poker(Poker_TypeDef *list){
         for(i = 0; i < NUMS_OF_COLORS; ++ i){
             for(j = 0; j < NUMS_OF_EACH_COLOR; ++ j){
                 err = List_GetElement(list, i * NUMS_OF_EACH_COLOR + j, &elm);
-                printf(",\t%d" + !j, elm);  // 当 j = 0 时，!j = 1 ，const char * 指针偏移，从而不会打出前面的 ",".
+                printf(", %4d" + !j, elm);  // 当 j = 0 时，!j = 1 ，const char * 指针偏移，从而不会打出前面的 ",".
             }
             printf("\n");
         }
@@ -188,7 +171,7 @@ Err_TypeDef Split_Poker(Poker_TypeDef *list, int split_point){
  * @param list 指向扑克牌线性表的指针
  * @return Err_TypeDef 返回错误值，正常情况为SUCCESS( = 1)，其他错误值见list.h
  */
-Err_TypeDef Split_Shuffle(Poker_TypeDef *list){
+Err_TypeDef Shuffle_Poker(Poker_TypeDef *list){
     int i = 0, length = 0, half_length = 0;
     ElementTypeDef elm, *temp = NULL;
     Err_TypeDef err = SUCCESS;
@@ -205,8 +188,8 @@ Err_TypeDef Split_Shuffle(Poker_TypeDef *list){
                 temp[i] = (list->Elements)[i];
             }
             for(i = 0; i < half_length; ++ i){
-                (list->Elements)[2 * i] = (list->Elements)[half_length + i];
-                (list->Elements)[2 * i + 1] = temp[i];
+                (list->Elements)[2 * i] = temp[i];
+                (list->Elements)[2 * i + 1] = (list->Elements)[half_length + i];
             }
             free(temp);
         }
@@ -229,18 +212,77 @@ Err_TypeDef Split_Poker_Random(Poker_TypeDef *list){
 }
 
 
+
+/************************************************************************************************/
+/************************************************************************************************/
+/************************************************************************************************/
+
+
+
+Err_TypeDef Case_1_Handle(Poker_TypeDef *list){
+    Err_TypeDef err = SUCCESS;
+    err = Split_Poker_Random(list);
+    if(err == SUCCESS){
+        Print_Poker(list);
+    }
+    return err;
+}
+
+Err_TypeDef Case_2_Handle(Poker_TypeDef *list){
+    Err_TypeDef err = SUCCESS;
+    int split_point = 0;
+    printf("请输入切点位置:\n");
+    fflush(stdin);
+    scanf("%d", &split_point);
+    if(split_point < 0 || split_point >= NUMS_OF_POKERS){
+        printf("这切点给得我很难办啊\n");
+    }else{
+        err = Split_Poker(list, split_point);
+        if(err == SUCCESS){
+            Print_Poker(list);
+        }
+    }
+    return err;
+}
+
+Err_TypeDef Case_3_Handle(Poker_TypeDef *list){
+    Err_TypeDef err = SUCCESS;
+    err = Shuffle_Poker(list);
+    if(err == SUCCESS){
+        Print_Poker(list);
+    }
+    return err;
+}
+
+Err_TypeDef Case_4_Handle(Poker_TypeDef *list){
+    Err_TypeDef err = SUCCESS;
+    Print_Poker(list);
+    return err;
+}
+
 int main(){
     Poker_TypeDef *list = NULL;
+    int choice = 0;
+    Err_TypeDef err = SUCCESS;
+    Err_TypeDef (*tasks[])(Poker_TypeDef *) = {Case_1_Handle, Case_2_Handle, Case_3_Handle, Case_4_Handle};
     Init_Poker(&list);
-    Print_Poker(list);
-    printf("\n-----------------------------------------\n");
-    Split_Shuffle(list);
-    Print_Poker(list);
-    printf("\n-----------------------------------------\n");
-    Split_Poker(list, 4);
-    Print_Poker(list);
-    printf("\n-----------------------------------------\n");
-    Split_Poker_Random(list);
-    Print_Poker(list);
+
+    while(1){
+        err = SUCCESS;
+        printf("1. 随机切牌\n2. 指定切牌\n3. 洗牌\n4. 打印当前扑克牌\n5. 退出\n");
+        fflush(stdin);
+        scanf("%d", &choice);
+        system("cls");
+        if(choice < 1 || choice > 5){ // 错误输入
+            printf("错误输入！\n");
+        }else if(choice == 5){ // 退出
+            break;
+        }else{  // 执行任务
+            err = (tasks[choice - 1])(list);
+        }
+        if(err != SUCCESS){ // 打印错误
+            print_err(err);
+        }
+    }
     Destory_Poker(list);
 }
